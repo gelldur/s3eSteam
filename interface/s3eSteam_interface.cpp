@@ -11,64 +11,17 @@
 #include "s3eSteam.h"
 
 
+// Define S3E_EXT_SKIP_LOADER_CALL_LOCK on the user-side to skip LoaderCallStart/LoaderCallDone()-entry.
+// e.g. in s3eNUI this is used for generic user-side IwUI-based implementation.
 #ifndef S3E_EXT_SKIP_LOADER_CALL_LOCK
-// For MIPs (and WP8) platform we do not have asm code for stack switching
-// implemented. So we make LoaderCallStart call manually to set GlobalLock
-#if defined __mips || defined S3E_ANDROID_X86 || (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP))
+#if (defined(WINAPI_FAMILY) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)) || defined I3D_ARCH_NACLX86_64
+// For platforms missing stack-switching (WP8, NaCl, etc.) make loader-entry via LoaderCallStart/LoaderCallDone() on the user-side.
 #define LOADER_CALL_LOCK
 #endif
 #endif
 
-/**
- * Definitions for functions types passed to/from s3eExt interface
- */
-typedef  s3eResult(*s3eSteamRegister_t)(s3eSteamCallback callbackID, s3eCallback callbackFn, void* userData);
-typedef  s3eResult(*s3eSteamUnRegister_t)(s3eSteamCallback callbackID, s3eCallback callbackFn);
-typedef    s3eBool(*s3eSteamStart_t)();
-typedef    s3eBool(*s3eSteamStarted_t)();
-typedef    s3eBool(*s3eSteamRestartAppIfNecessary_t)(uint32 unOwnAppID);
-typedef const char *(*s3eSteamGetCurrentGameLanguage_t)();
-typedef    s3eBool(*s3eSteamStoreStats_t)();
-typedef    s3eBool(*s3eSteamRequestCurrentStats_t)();
-typedef       void(*s3eSteamUpdate_t)();
-typedef    s3eBool(*s3eSteamGetAchievement_t)(const char* pchName);
-typedef    s3eBool(*s3eSteamSetAchievement_t)(const char* pchName);
-typedef    s3eBool(*s3eSteamClearAchievement_t)(const char* pchName);
-typedef        int(*s3eSteamGetStatInt_t)(const char* pchName);
-typedef      float(*s3eSteamGetStatFloat_t)(const char* pchName);
-typedef    s3eBool(*s3eSteamSetStatInt_t)(const char* pchName, int nData);
-typedef    s3eBool(*s3eSteamSetStatFloat_t)(const char* pchName, float fData);
-typedef    s3eBool(*s3eSteamLeaderboardInit_t)(const char* pchName);
-typedef    s3eBool(*s3eSteamLeaderboardUploadScore_t)(const char* pchName, int32 value, s3eBool forceUpdate);
-typedef        int(*s3eSteamLeaderboardGetEntryCount_t)(const char* pchName);
-typedef    s3eBool(*s3eSteamLeaderboardDownloadEntries_t)(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd);
 
-/**
- * struct that gets filled in by s3eSteamRegister
- */
-typedef struct s3eSteamFuncs
-{
-    s3eSteamRegister_t m_s3eSteamRegister;
-    s3eSteamUnRegister_t m_s3eSteamUnRegister;
-    s3eSteamStart_t m_s3eSteamStart;
-    s3eSteamStarted_t m_s3eSteamStarted;
-    s3eSteamRestartAppIfNecessary_t m_s3eSteamRestartAppIfNecessary;
-    s3eSteamGetCurrentGameLanguage_t m_s3eSteamGetCurrentGameLanguage;
-    s3eSteamStoreStats_t m_s3eSteamStoreStats;
-    s3eSteamRequestCurrentStats_t m_s3eSteamRequestCurrentStats;
-    s3eSteamUpdate_t m_s3eSteamUpdate;
-    s3eSteamGetAchievement_t m_s3eSteamGetAchievement;
-    s3eSteamSetAchievement_t m_s3eSteamSetAchievement;
-    s3eSteamClearAchievement_t m_s3eSteamClearAchievement;
-    s3eSteamGetStatInt_t m_s3eSteamGetStatInt;
-    s3eSteamGetStatFloat_t m_s3eSteamGetStatFloat;
-    s3eSteamSetStatInt_t m_s3eSteamSetStatInt;
-    s3eSteamSetStatFloat_t m_s3eSteamSetStatFloat;
-    s3eSteamLeaderboardInit_t m_s3eSteamLeaderboardInit;
-    s3eSteamLeaderboardUploadScore_t m_s3eSteamLeaderboardUploadScore;
-    s3eSteamLeaderboardGetEntryCount_t m_s3eSteamLeaderboardGetEntryCount;
-    s3eSteamLeaderboardDownloadEntries_t m_s3eSteamLeaderboardDownloadEntries;
-} s3eSteamFuncs;
+#include "s3eSteam_interface.h"
 
 static s3eSteamFuncs g_Ext;
 static bool g_GotExt = false;
@@ -121,13 +74,13 @@ s3eResult s3eSteamRegister(s3eSteamCallback callbackID, s3eCallback callbackFn, 
         return S3E_RESULT_ERROR;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamRegister);
 #endif
 
     s3eResult ret = g_Ext.m_s3eSteamRegister(callbackID, callbackFn, userData);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamRegister);
 #endif
 
     return ret;
@@ -141,13 +94,13 @@ s3eResult s3eSteamUnRegister(s3eSteamCallback callbackID, s3eCallback callbackFn
         return S3E_RESULT_ERROR;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamUnRegister);
 #endif
 
     s3eResult ret = g_Ext.m_s3eSteamUnRegister(callbackID, callbackFn);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamUnRegister);
 #endif
 
     return ret;
@@ -161,13 +114,13 @@ s3eBool s3eSteamStart()
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamStart);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamStart();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamStart);
 #endif
 
     return ret;
@@ -181,13 +134,13 @@ s3eBool s3eSteamStarted()
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamStarted);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamStarted();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamStarted);
 #endif
 
     return ret;
@@ -201,13 +154,13 @@ s3eBool s3eSteamRestartAppIfNecessary(uint32 unOwnAppID)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamRestartAppIfNecessary);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamRestartAppIfNecessary(unOwnAppID);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamRestartAppIfNecessary);
 #endif
 
     return ret;
@@ -221,13 +174,13 @@ const char * s3eSteamGetCurrentGameLanguage()
         return NULL;;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetCurrentGameLanguage);
 #endif
 
     const char * ret = g_Ext.m_s3eSteamGetCurrentGameLanguage();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetCurrentGameLanguage);
 #endif
 
     return ret;
@@ -241,13 +194,13 @@ s3eBool s3eSteamStoreStats()
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamStoreStats);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamStoreStats();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamStoreStats);
 #endif
 
     return ret;
@@ -261,13 +214,13 @@ s3eBool s3eSteamRequestCurrentStats()
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamRequestCurrentStats);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamRequestCurrentStats();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamRequestCurrentStats);
 #endif
 
     return ret;
@@ -281,13 +234,13 @@ void s3eSteamUpdate()
         return;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamUpdate);
 #endif
 
     g_Ext.m_s3eSteamUpdate();
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamUpdate);
 #endif
 
     return;
@@ -301,13 +254,13 @@ s3eBool s3eSteamGetAchievement(const char* pchName)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetAchievement);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamGetAchievement(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetAchievement);
 #endif
 
     return ret;
@@ -321,13 +274,13 @@ s3eBool s3eSteamSetAchievement(const char* pchName)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetAchievement);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamSetAchievement(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetAchievement);
 #endif
 
     return ret;
@@ -341,13 +294,13 @@ s3eBool s3eSteamClearAchievement(const char* pchName)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamClearAchievement);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamClearAchievement(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamClearAchievement);
 #endif
 
     return ret;
@@ -361,13 +314,13 @@ int s3eSteamGetStatInt(const char* pchName)
         return 0;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetStatInt);
 #endif
 
     int ret = g_Ext.m_s3eSteamGetStatInt(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetStatInt);
 #endif
 
     return ret;
@@ -381,13 +334,13 @@ float s3eSteamGetStatFloat(const char* pchName)
         return 0.f;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetStatFloat);
 #endif
 
     float ret = g_Ext.m_s3eSteamGetStatFloat(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamGetStatFloat);
 #endif
 
     return ret;
@@ -401,13 +354,13 @@ s3eBool s3eSteamSetStatInt(const char* pchName, int nData)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetStatInt);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamSetStatInt(pchName, nData);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetStatInt);
 #endif
 
     return ret;
@@ -421,13 +374,13 @@ s3eBool s3eSteamSetStatFloat(const char* pchName, float fData)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetStatFloat);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamSetStatFloat(pchName, fData);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamSetStatFloat);
 #endif
 
     return ret;
@@ -441,13 +394,13 @@ s3eBool s3eSteamLeaderboardInit(const char* pchName)
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardInit);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamLeaderboardInit(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardInit);
 #endif
 
     return ret;
@@ -461,13 +414,13 @@ s3eBool s3eSteamLeaderboardUploadScore(const char* pchName, int32 value, s3eBool
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardUploadScore);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamLeaderboardUploadScore(pchName, value, forceUpdate);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardUploadScore);
 #endif
 
     return ret;
@@ -481,13 +434,13 @@ int s3eSteamLeaderboardGetEntryCount(const char* pchName)
         return 0;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardGetEntryCount);
 #endif
 
     int ret = g_Ext.m_s3eSteamLeaderboardGetEntryCount(pchName);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardGetEntryCount);
 #endif
 
     return ret;
@@ -501,13 +454,13 @@ s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderb
         return S3E_FALSE;
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallStart(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardDownloadEntries);
 #endif
 
     s3eBool ret = g_Ext.m_s3eSteamLeaderboardDownloadEntries(pchName, eLeaderboardData, nRangeStart, nRangeEnd);
 
 #ifdef LOADER_CALL_LOCK
-    s3eDeviceLoaderCallDone(S3E_TRUE, NULL);
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamLeaderboardDownloadEntries);
 #endif
 
     return ret;

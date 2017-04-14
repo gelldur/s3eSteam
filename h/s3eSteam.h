@@ -76,7 +76,8 @@ S3E_BEGIN_C_DECL
 // \endcond
 
 /**
- * Returns S3E_TRUE if the Steam extension is available.
+ * Report if the Steam extension is available.
+ * @return S3E_TRUE if the Steam extension is available. S3E_FALSE otherwise.
  */
 s3eBool s3eSteamAvailable();
 
@@ -120,6 +121,8 @@ int s3eSteamLeaderboardGetEntryCount(const char* pchName);
 
 s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd);
 
+// \cond HIDDEN_DEFINES
 S3E_END_C_DECL
+// \endcond
 
 #endif /* !S3E_EXT_STEAM_H */
