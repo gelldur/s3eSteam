@@ -3,18 +3,11 @@
 # be overwritten (unless --force is specified) and is intended to be modified.
 display_name "Extensions/s3eSteam"
 
-subproject steamworks_sdk_location
-
 includepaths
 {
-    source\h
+    source/h
     h
-    upstream\public\steam
-}
-librarypaths
-{
-    upstream\redistributable_bin
-    upstream\redistributable_bin\osx32
+    ../steamworks/sdk/public/steam
 }
 
 defines
@@ -41,7 +34,6 @@ if {{defined I3D_OS_WINDOWS}}
 {
     files
     {
-        
         ["source"]
         (use_first_found, source/windows, source/generic)
         s3eSteam_platform.cpp
@@ -55,7 +47,6 @@ if {{defined I3D_OS_OSX}}
 {
     files
     {
-        
         ["source"]
         (use_first_found, source/osx, source/generic)
         s3eSteam_platform.mm
@@ -78,7 +69,6 @@ if {{defined I3D_OS_LINUX and not defined S3E_ANDROID}}
 
 files
 {
-
     # Add any platform-independent files here
     # Note that if the file exists in the platform-specific directory
     # it will be taken from there instead of 'generic'

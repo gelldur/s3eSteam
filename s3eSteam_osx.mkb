@@ -11,4 +11,9 @@ options
 }
 define S3E_BUILD_EXT
 
+librarypaths
+{
+    ../steamworks/sdk/redistributable_bin/osx32
+}
+
 subproject s3eSteam_build

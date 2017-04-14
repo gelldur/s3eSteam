@@ -11,4 +11,11 @@ options
 }
 define S3E_BUILD_EXT
 
+librarypaths
+{
+    ../steamworks/sdk/redistributable_bin/
+    ../steamworks/sdk/public/steam/lib/win32/
+    ../steamworks/sdk/redistributable_bin/win64/
+}
+
 subproject s3eSteam_build
