@@ -465,3 +465,43 @@ s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderb
 
     return ret;
 }
+
+s3eBool s3eSteamIsPurchased(uint32 appId)
+{
+    IwTrace(STEAM_VERBOSE, ("calling s3eSteam[20] func: s3eSteamIsPurchased"));
+
+    if (!_extLoad())
+        return S3E_FALSE;
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamIsPurchased);
+#endif
+
+    s3eBool ret = g_Ext.m_s3eSteamIsPurchased(appId);
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamIsPurchased);
+#endif
+
+    return ret;
+}
+
+void s3eSteamPurchase(uint32 appId)
+{
+    IwTrace(STEAM_VERBOSE, ("calling s3eSteam[21] func: s3eSteamPurchase"));
+
+    if (!_extLoad())
+        return;
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamPurchase);
+#endif
+
+    g_Ext.m_s3eSteamPurchase(appId);
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamPurchase);
+#endif
+
+    return;
+}

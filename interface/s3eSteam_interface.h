@@ -25,6 +25,8 @@ typedef    s3eBool(*s3eSteamLeaderboardInit_t)(const char* pchName);
 typedef    s3eBool(*s3eSteamLeaderboardUploadScore_t)(const char* pchName, int32 value, s3eBool forceUpdate);
 typedef        int(*s3eSteamLeaderboardGetEntryCount_t)(const char* pchName);
 typedef    s3eBool(*s3eSteamLeaderboardDownloadEntries_t)(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd);
+typedef    s3eBool(*s3eSteamIsPurchased_t)(uint32 appId);
+typedef       void(*s3eSteamPurchase_t)(uint32 appId);
 
 /**
  * struct that gets filled in by s3eSteamRegister
@@ -51,4 +53,6 @@ typedef struct s3eSteamFuncs
     s3eSteamLeaderboardUploadScore_t m_s3eSteamLeaderboardUploadScore;
     s3eSteamLeaderboardGetEntryCount_t m_s3eSteamLeaderboardGetEntryCount;
     s3eSteamLeaderboardDownloadEntries_t m_s3eSteamLeaderboardDownloadEntries;
+    s3eSteamIsPurchased_t m_s3eSteamIsPurchased;
+    s3eSteamPurchase_t m_s3eSteamPurchase;
 } s3eSteamFuncs;

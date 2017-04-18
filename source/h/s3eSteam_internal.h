@@ -78,4 +78,7 @@ s3eBool s3eSteamLeaderboardUploadScore_platform(const char* pchName, int32 value
 int s3eSteamLeaderboardGetEntryCount_platform(const char* pchName);
 s3eBool s3eSteamLeaderboardDownloadEntries_platform(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd);
 
+s3eBool s3eSteamIsPurchased_platform(uint32 appId);
+void s3eSteamPurchase_platform(uint32 appId);
+
 #endif /* !S3ESTEAM_INTERNAL_H */

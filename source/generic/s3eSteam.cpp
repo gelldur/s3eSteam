@@ -124,3 +124,13 @@ s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderb
 {
     return s3eSteamLeaderboardDownloadEntries_platform(pchName, eLeaderboardData, nRangeStart, nRangeEnd);
 }
+
+s3eBool s3eSteamIsPurchased(uint32 appId)
+{
+    return s3eSteamIsPurchased_platform(appId);
+}
+
+void s3eSteamPurchase(uint32 appId)
+{
+    s3eSteamPurchase_platform(appId);
+}

@@ -89,3 +89,7 @@ s3eBool s3eSteamLeaderboardInit(const char* pchName) S3E_FALSE
 s3eBool s3eSteamLeaderboardUploadScore(const char* pchName, int32 value, s3eBool forceUpdate S3E_DEFAULT(S3E_FALSE)) S3E_FALSE
 int s3eSteamLeaderboardGetEntryCount(const char* pchName) 0
 s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd) S3E_FALSE
+
+// Billings
+s3eBool s3eSteamIsPurchased(uint32 appId) S3E_FALSE
+void s3eSteamPurchase(uint32 appId)

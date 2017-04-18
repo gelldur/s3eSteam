@@ -121,6 +121,10 @@ int s3eSteamLeaderboardGetEntryCount(const char* pchName);
 
 s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderboardDataRequest eLeaderboardData, int nRangeStart, int nRangeEnd);
 
+s3eBool s3eSteamIsPurchased(uint32 appId);
+
+void s3eSteamPurchase(uint32 appId);
+
 // \cond HIDDEN_DEFINES
 S3E_END_C_DECL
 // \endcond

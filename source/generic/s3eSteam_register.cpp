@@ -21,7 +21,7 @@ extern void s3eSteamTerminate();
 void s3eSteamRegisterExt()
 {
     /* fill in the function pointer struct for this extension */
-    void* funcPtrs[20];
+    void* funcPtrs[22];
     funcPtrs[0] = (void*)s3eSteamRegister;
     funcPtrs[1] = (void*)s3eSteamUnRegister;
     funcPtrs[2] = (void*)s3eSteamStart;
@@ -42,11 +42,13 @@ void s3eSteamRegisterExt()
     funcPtrs[17] = (void*)s3eSteamLeaderboardUploadScore;
     funcPtrs[18] = (void*)s3eSteamLeaderboardGetEntryCount;
     funcPtrs[19] = (void*)s3eSteamLeaderboardDownloadEntries;
+    funcPtrs[20] = (void*)s3eSteamIsPurchased;
+    funcPtrs[21] = (void*)s3eSteamPurchase;
 
     /*
      * Flags that specify the extension's use of locking and stackswitching
      */
-    int flags[20] = { 0 };
+    int flags[22] = { 0 };
 
     /*
      * Register the extension

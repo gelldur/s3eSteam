@@ -441,3 +441,22 @@ void CallbackHolder::OnLeaderboardDownloadedEntriesCompleted(uint32 extID, int32
 		delete [] entries;
 	}
 }
+
+s3eBool s3eSteamIsPurchased_platform(uint32 appId)
+{
+	ISteamApps* steam = SteamApps();
+	if(steam)
+	{
+		return steam->BIsDlcInstalled(appId);
+	}
+	return false;
+}
+
+void s3eSteamPurchase_platform(uint32 appId)
+{
+	ISteamFriends* steam = SteamFriends();
+	if(steam)
+	{
+		steam->ActivateGameOverlayToStore(appId, EOverlayToStoreFlag::k_EOverlayToStoreFlag_AddToCartAndShow);
+	}
+}
