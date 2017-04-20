@@ -486,9 +486,29 @@ s3eBool s3eSteamIsPurchased(uint32 appId)
     return ret;
 }
 
+s3eBool s3eSteamIsSteamOverlayActive()
+{
+    IwTrace(STEAM_VERBOSE, ("calling s3eSteam[21] func: s3eSteamIsSteamOverlayActive"));
+
+    if (!_extLoad())
+        return S3E_FALSE;
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallStart(S3E_TRUE, (void*)g_Ext.m_s3eSteamIsSteamOverlayActive);
+#endif
+
+    s3eBool ret = g_Ext.m_s3eSteamIsSteamOverlayActive();
+
+#ifdef LOADER_CALL_LOCK
+    s3eDeviceLoaderCallDone(S3E_TRUE, (void*)g_Ext.m_s3eSteamIsSteamOverlayActive);
+#endif
+
+    return ret;
+}
+
 void s3eSteamPurchase(uint32 appId)
 {
-    IwTrace(STEAM_VERBOSE, ("calling s3eSteam[21] func: s3eSteamPurchase"));
+    IwTrace(STEAM_VERBOSE, ("calling s3eSteam[22] func: s3eSteamPurchase"));
 
     if (!_extLoad())
         return;

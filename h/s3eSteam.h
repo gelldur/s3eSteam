@@ -123,6 +123,8 @@ s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderb
 
 s3eBool s3eSteamIsPurchased(uint32 appId);
 
+s3eBool s3eSteamIsSteamOverlayActive();
+
 void s3eSteamPurchase(uint32 appId);
 
 // \cond HIDDEN_DEFINES

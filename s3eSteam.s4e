@@ -92,4 +92,5 @@ s3eBool s3eSteamLeaderboardDownloadEntries(const char* pchName, s3eSteamELeaderb
 
 // Billings
 s3eBool s3eSteamIsPurchased(uint32 appId) S3E_FALSE
+s3eBool s3eSteamIsSteamOverlayActive() S3E_FALSE
 void s3eSteamPurchase(uint32 appId)

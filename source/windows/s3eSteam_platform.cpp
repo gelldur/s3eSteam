@@ -20,6 +20,7 @@ ISteamUserStats* g_pSteamUserStats = NULL;
 bool g_bInited = false;
 bool g_bStoreStats = false;
 bool g_bRequestedStats = false;
+bool g_bGameOverlayActivated = false;
 typedef std::map<std::string, SteamLeaderboard_t> Leaderboards;
 Leaderboards g_Leaderboards;
 
@@ -78,8 +79,9 @@ private:
     STEAM_CALLBACK(CallbackHolder, OnUserStatsReceived, UserStatsReceived_t, m_CallbackUserStatsReceived);
     STEAM_CALLBACK(CallbackHolder, OnUserStatsStored, UserStatsStored_t, m_CallbackUserStatsStored);
     STEAM_CALLBACK(CallbackHolder, OnAchievementStored, UserAchievementStored_t, m_CallbackAchievementStored);
+    STEAM_CALLBACK(CallbackHolder, OnGameOverlayActivated, GameOverlayActivated_t);
 
-	void OnFindLeaderboard(LeaderboardFindResult_t *pFindLearderboardResult, bool bIOFailure);
+    void OnFindLeaderboard(LeaderboardFindResult_t *pFindLearderboardResult, bool bIOFailure);
 	void OnUploadScore(LeaderboardScoreUploaded_t *pFindLearderboardResult, bool bIOFailure);
 	void OnLeaderboardDownloadedEntries(LeaderboardScoresDownloaded_t *pLeaderboardScoresDownloaded, bool bIOFailure);
 	static void OnLeaderboardDownloadedEntriesCompleted(uint32 extID, int32 notification, void* systemData, void* instance, int32 returnCode, void* completeData);
@@ -283,6 +285,16 @@ void CallbackHolder::OnAchievementStored(UserAchievementStored_t *pCallback)
     }
 }
 
+//-----------------------------------------------------------------------------
+// Purpose: Handles notification that the Steam overlay is shown/hidden, note, this
+// doesn't mean the overlay will or will not draw, it may still draw when not active.
+// This does mean the time when the overlay takes over input focus from the game.
+//-----------------------------------------------------------------------------
+void CallbackHolder::OnGameOverlayActivated( GameOverlayActivated_t *callback )
+{
+	g_bGameOverlayActivated = callback->m_bActive;
+}
+
 //--------------------------------------------------------------------------------
 const char * s3eSteamGetCurrentGameLanguage_platform()
 {
@@ -450,6 +462,11 @@ s3eBool s3eSteamIsPurchased_platform(uint32 appId)
 		return steam->BIsDlcInstalled(appId);
 	}
 	return false;
+}
+
+s3eBool s3eSteamIsSteamOverlayActive_platform()
+{
+	return g_bGameOverlayActivated;
 }
 
 void s3eSteamPurchase_platform(uint32 appId)

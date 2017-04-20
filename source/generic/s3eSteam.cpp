@@ -130,6 +130,11 @@ s3eBool s3eSteamIsPurchased(uint32 appId)
     return s3eSteamIsPurchased_platform(appId);
 }
 
+s3eBool s3eSteamIsSteamOverlayActive()
+{
+    return s3eSteamIsSteamOverlayActive_platform();
+}
+
 void s3eSteamPurchase(uint32 appId)
 {
     s3eSteamPurchase_platform(appId);
